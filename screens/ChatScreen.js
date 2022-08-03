@@ -1,5 +1,5 @@
 import { Keyboard, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
-import React, { useLayoutEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { Avatar } from 'react-native-elements'
 import { AntDesign, FontAwesome, Ionicons } from '@expo/vector-icons'
 import { StatusBar } from 'expo-status-bar'
@@ -70,21 +70,25 @@ const Chat = ({ navigation, route }) => {
       photoURL: auth.currentUser.photoURL,
     })
 
-  setInput('')
-}
+    setInput('')
+  }
 
-useLayoutEffect(() => {
-  const queryCollection = query(collection(doc(collection(db, 'chats'), route.params.id), 'messages'), orderBy('timestamp', 'asc'))
+  useEffect(() => {
+    const queryCollection = query(collection(doc(db, 'chats', route.params.id), 'messages'), orderBy('timestamp', 'asc'))
 
-  const unsubscribe = onSnapshot(queryCollection, (snapshot) => {
-      setMessages(snapshot.docs.map(doc => ({
-        id: doc.id,
-        data: doc.data()
-      })))
-  })
+    let unsub
+    const fetchMessages = async () => {
+      unsub = onSnapshot(queryCollection, (snapshot) => {
+        setMessages(snapshot.docs.map(doc => ({
+          id: doc.id,
+          data: doc.data()
+        })))
+      })
+    }
 
-  return unsubscribe
-}, [route])
+    fetchMessages()
+    return unsub
+  }, [route])
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
@@ -193,8 +197,9 @@ const styles = StyleSheet.create({
   senderText: {
     color: 'white',
     fontWeight: '500',
-    marginLeft: 10,
-    marginBottom: 15,
+    marginLeft: 5,
+    marginBottom: 5,
+    marginRight: 5,
   },
   receiverText: {
     color: 'black',
@@ -202,7 +207,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   senderName: {
-    left: 10,
+    left: 5,
     paddingRight: 10,
     fontSize: 10,
     color: 'white',

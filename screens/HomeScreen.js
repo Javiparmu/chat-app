@@ -20,14 +20,19 @@ const HomeScreen = ({ navigation }) => {
     }
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(collection(db, 'chats'), (snapshot) => {
-            setChats(snapshot.docs.map(doc => ({
-                id: doc.id,
-                data: doc.data()
-            })))
-        })
+        let unsub
 
-        return unsubscribe
+        const fetchChats = async () => {
+            unsub = onSnapshot(collection(db, 'chats'), (snapshot) => {
+                setChats(snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    data: doc.data()
+                })))
+            })
+        }
+
+        fetchChats()
+        return unsub
     }, [])
 
     useLayoutEffect(() => {
@@ -36,7 +41,7 @@ const HomeScreen = ({ navigation }) => {
             headerStyle: { backgroundColor: '#fff' },
             headerTitleStyle: { color: '#000' },
             headerLeft: () => (
-                <View style={{marginRight: 10}}>
+                <View style={{ marginRight: 10 }}>
                     <TouchableOpacity activeOpacity={0.5} onPress={signOutUser}>
                         <Avatar rounded source={{ uri: auth?.currentUser?.photoURL }}></Avatar>
                     </TouchableOpacity>
